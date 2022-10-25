@@ -1,0 +1,203 @@
+1] 
+template<typename T>
+    class Less_Than{
+    const T val;
+    public:
+    Less_Than(const T& v):val(v) {}
+    bool operator()(const T& x) const { return x < val; }
+};
+    
+    
+int main()
+{
+    Less_Than<int> lti {40};
+    Less_Than<string> lts {"Backus"};
+    
+    cout << endl << " For integer 23 -- " << lti(23) << endl;
+    cout << endl << " For string Soham -- " << lts("Soham") << endl;
+}
+
+
+2]
+
+void f(map<string,int> & m)
+{
+	auto p = find_if(m.begin(),m.end(),Greater_Than{42});
+	....
+}
+
+struct Greater_Than{
+int val;
+Greater_Than(const int& v): val{v} {}
+bool operator()(const pair<string,int> & ref) { return ref.second > val;}
+}
+
+
+3]
+
+/* Read lines of string from input file and write it in some other file all string in ascending order of string with removing duplicates string */
+
+#include <iostream>
+#include <functional>
+
+using namespace std;
+
+int main()
+{
+	string from,to;
+	
+	cin >> from >> to;
+	
+	ifstream if{from};
+	ofstream of{to};
+	
+	istream_iterator<string> ii{if}
+	istream_iterator<string> eos{} //inpupt sentinel
+	
+	ostream_iterator<string> oi{of,"\n"};
+	
+	set<string> s{ii,eos};
+	
+	copy(s.begin(),s.end(),oi);
+	
+	return 0;
+}
+
+
+4] 
+
+void silly(vector<Entry> & book)
+{
+	int i=book[book.size()].number;      // vector doesn't support range check here book.size() inside script operator
+}
+
+// To handle this we need to use :at of vector as below
+
+template<typename T>
+class vec:public std::vector<T>
+{
+	public:
+		using vector<T>::vector;
+		
+		T& operator[](int i) const
+		{
+			return vector<T>::at(i);
+		}
+		
+		const T& operator[](int i) const
+		{
+			return vector<T>::at(i);
+		}
+}
+
+
+5] 
+
+/* Generic sum function for any container type */
+template<typename container,typename value>
+value sum(const container& C, value V)
+{
+	for(auto& e : C)
+	V += e;
+	
+	return V;
+}
+
+6] 
+
+/* Map declaration with value type as generic */
+
+template<typename value>
+using String_map = std::Map<string,value>
+
+String_map<int> m;
+
+String_map<short> m1;
+
+String_map<double> m2;
+
+String_map<string> m3;
+
+to use a template, make sure its definition ( not just its declaration ) is in scope.
+
+7] 
+
+/* Threading example to handle producer and consumer example */
+
+#include <thread>
+
+Class Message
+{
+};
+
+mutex mmutex;
+condition_variable mcond;
+queue <Message> mq;
+
+void consumer()
+{
+while(true)
+{
+	unique_lock <mutex> lck {mmutext};
+	mcond.wait(lck);
+	
+	auto temp = mq.front();
+	mq.pop();
+	lck.unlock();
+	
+// Process temp
+
+}
+}
+
+void producer()
+{
+while(true)
+{
+	Message obj;
+	// Fill the message
+	unique_lock <mutext> lck {mmutext};
+	mq.push(obj);
+	mcond.notify_one();
+} //
+
+
+8] Handling of exception thrown from constructor :- We need to make sure that dtor will be called in case when an object construction throws an error. Because the dtor will only called for the objects whose construction is done successfully.
+
+#include <iostream> 
+using namespace std; 
+
+class Test1 { 
+public: 
+Test1() { cout << "Constructing an Object of Test1" << endl; } 
+~Test1() { cout << "Destructing an Object of Test1" << endl; } 
+}; 
+
+class Test2 { 
+public: 
+// Following constructor throws an integer exception 
+Test2() { cout << "Constructing an Object of Test2" << endl; 
+		  // throw 20; 
+         throw this;
+        } 
+~Test2() { cout << "Destructing an Object of Test2" << endl; } 
+}; 
+
+int main() { 
+try { 
+	Test1 t1; // Constructed and destructed 
+	Test2 t2; // Partially constructed 
+	Test1 t3; // t3 is not constructed as this statement never gets executed 
+} 
+// catch(int i) { 
+    catch(Test2 *t){
+	// cout << "Caught " << i << endl; 
+        cout << "Destroying object of class Test2 " << endl;
+        t->~Test2(); // Explicitly forcibly calling the dtor
+} 
+    catch(Test1 *t)
+    {
+        cout << "Destroying object of class Test1 " << endl;
+        t->~Test1();  
+    }
+}	
